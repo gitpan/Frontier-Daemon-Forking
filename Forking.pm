@@ -4,7 +4,7 @@ package Frontier::Daemon::Forking;
 use strict;
 use vars qw{@ISA $VERSION};
 
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 use Frontier::RPC2;
 use HTTP::Daemon;
@@ -14,12 +14,18 @@ use HTTP::Status;
 
 #  most of this routine comes directly from Frontier::Daemon
 sub new {
-    my $class = shift; my %args = @_;
-    my $self = $class->SUPER::new( %args );
+    my $class    = shift; 
+    my %args     = @_;
+    my $encoding = delete $args{encoding};
+    my $self     = $class->SUPER::new( %args );
     return undef unless $self;
 
+    my @options;
+    push @options, encoding => $encoding
+        if $encoding;
+
     ${*$self}{methods}  = $args{methods};
-    ${*$self}{decode}   = new Frontier::RPC2;
+    ${*$self}{decode}   = new Frontier::RPC2(@options);
     ${*$self}{response} = new HTTP::Response 200;
     ${*$self}{response}->header( 'Content-Type' => 'text/xml' );
 
@@ -69,6 +75,7 @@ Frontier::Daemon::Forking - receive Frontier XML RPC requests
       methods => {
           rpcName => \&rpcHandler,
       },
+      encoding => 'ISO-8859-1',
   );
 
   sub rpcHandler { return 'OK' }
